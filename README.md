@@ -12,8 +12,19 @@ pour ajouter un utilisateur et un computor, dans le server manager, dans le menu
 Simulations des attacks Mitres 
 1- T1087.002 Account Discovery: Domain Account
 un type d'attaque mitres ou un utilisateur cherche des utilisateurs qui sonts trouvee dans la domaine avec des requetes LDAP , exemple ou on trouve le journal dans Wazuh:
+
+
 <img width="1501" height="637" alt="image" src="https://github.com/user-attachments/assets/d5857884-c51f-4f79-8bcd-93357b4b5788" />
 c'est quoi une requetes ldap?  ils sont des queries to search for, retrieve, or filter information about users, groups, computers, and other network resources
 exemples de requetes LDAP : net groups /domain , net users /domain  net group "groupe specifique" /domain etc ou on peut utiliser des software puissants comme Bloodhound pour faire le recon voici un exemple de net group "domain admin" /domain :
-<img width="566" height="214" alt="image" src="https://github.com/user-attachments/assets/60df2207-73ee-42fa-9a37-e8ab145044a6" />
 
+
+<img width="566" height="214" alt="image" src="https://github.com/user-attachments/assets/60df2207-73ee-42fa-9a37-e8ab145044a6" />
+Comment detecter ce type des requests? Sysmon detecte tous les journals de creation des processus Sysmon event ID 1 (process creation) 
+la majeur probleme avec ce recon est il n'est pas preventable, car le domain controlleur utilise ces quesries LDAP pour verifieir qu'est ce qu'il est dans le domain , la meilleur option est de detecter le recon au lieu de preventer lui, donc il faut creer une regle wazuh pour detecter ce probleme, les regles wazuh custom sont creer ici  `/var/ossec/etc/rules/local_rules.xml`  wazuh principalement offre ce regle avec un niveau 3 
+<img width="1509" height="785" alt="image" src="https://github.com/user-attachments/assets/3d25640d-d701-4229-8842-6ac6f9e284e1" />
+et dans l'autre  image on peut voir le rule qui
+<img width="656" height="159" alt="image" src="https://github.com/user-attachments/assets/0e29688e-f589-4435-a5dc-754e0ec12e6f" />
+<img width="769" height="165" alt="image" src="https://github.com/user-attachments/assets/81a78451-927c-4b04-8511-76b478769f68" />
+
+on trouve

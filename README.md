@@ -129,7 +129,8 @@ Les deux captures Wazuh ci-dessus confirment que ces evenements remontent correc
 **Limitation :** aucun seuil/correlation (ex. "N echecs en X secondes") n'a ete implemente ici — Wazuh affiche les evenements individuels, mais ne les regroupe pas automatiquement en un "incident" de brute force sur un logon Windows comme il le ferait nativement pour SSH. Une regle de correlation par seuil serait l'etape suivante logique pour transformer ce simple logging en vraie detection d'attaque.
  
 ---
- 
+ ### T155.003 Kerberosting : Vol ou fabrication des certificats Kerberos 
+ Kerberos est le methode d'authentification d'AD
 ## Recap
  
 | Technique | ATT&CK | Source | Detecte? | Notes |

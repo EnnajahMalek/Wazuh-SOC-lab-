@@ -73,7 +73,7 @@ Rule finale :
 **Confirme en production** — alertes reelles pour `labuser` (BloodHound, Case B) et `Administrator` (activite normale). Limitation : le rule ne distingue pas attaquant vs admin legitime.
 
 ---
-## 3 
+## 3 T1110.001/T1110.003 Brute force / password spraying 
 ## Recap
 
 | Technique | ATT&CK | Source | Detecte? | Notes |

@@ -111,11 +111,11 @@ hydra -l labuser -P passlist.txt rdp://192.168.10.20 -t 1 -W 3
 hydra -L userlist.txt -p pykers123A rdp://192.168.10.20 -t 1 -W 3
 ```
  
-for bruteforce
+### images pour cote bruteforce
 <img width="627" height="282" alt="image" src="https://github.com/user-attachments/assets/99169650-3282-4c11-bfe3-f525715f8a26" />
 <img width="1481" height="159" alt="image" src="https://github.com/user-attachments/assets/25906ce1-19f0-4a00-94b8-1123fe1a5518" />
  
-for password spraying
+### images pour cote password spraying
 <img width="635" height="289" alt="image" src="https://github.com/user-attachments/assets/181b9f93-cdab-4670-ac02-9c0199921093" />
 <img width="1475" height="152" alt="image" src="https://github.com/user-attachments/assets/3ce9b71f-4065-489e-b40f-8b2a36054aaf" />
  

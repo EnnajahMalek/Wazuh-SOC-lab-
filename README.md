@@ -132,7 +132,7 @@ Les deux captures Wazuh ci-dessus confirment que ces evenements remontent correc
  ### T1558.003 Kerberosting : Vol ou fabrication des certificats Kerberos 
  Kerberos est le methode d'authentification d'AD
 
- ### 
+ ### T1136.001 Creation de compte locale
 ## Recap
  
 | Technique | ATT&CK | Source | Detecte? | Notes |
